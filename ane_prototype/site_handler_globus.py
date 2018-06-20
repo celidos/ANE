@@ -3,13 +3,15 @@ import standard_food_basket as SFB
 import pandas as pd
 from ane_tools import get_html, penc
 from bs4 import BeautifulSoup
-import lxml
+from post_processing import PostProcessor
 
 class SiteHandlerGlobus(interface.SiteHandlerInterface):
 
     def __init__(self):
-        self.site_prefix = 'https://online.globus.ru'
-        self.description = '"Глобус"'
+        self.site_prefix = r'https://online.globus.ru'
+        self.description = r'"Глобус"'
+        self.site_id = 1
+        self.pricelists = dict()
 
     def extract_products(self, html, page=1):
         soup = BeautifulSoup(html, 'lxml')
@@ -22,7 +24,7 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
         else:
             flag_nextpage = True
 
-        print('TOTAL', total_amount)
+        # print('TOTAL', total_amount)
         price_list = products_div.find_all('div', {'class': 'catalog-section__item__body trans'})
 
         res = []
@@ -38,7 +40,7 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
 
             res.append(price_dict)
 
-        print('  For product {} results has beed found'.format(len(res)), sep='')
+        # print('  For product {} results has beed found'.format(len(res)), sep='')
 
         return flag_nextpage, res
 
@@ -63,7 +65,7 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
         return price
 
     def byurls(self, product):
-        print('byurl for', product['title'])
+        print('byurl for', product['title'], '...', end='')
 
         urls = list(filter(None, product['globus_url'].split(' ')))
 
@@ -73,6 +75,7 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
         price = []
         for url in urls:
             price.extend(self.process_single_url(url))
+        print('total', len(price), 'results!')
         return price
 
     def byurlcompl(self, product):
@@ -84,15 +87,16 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
         return pd.DataFrame(res)
 
     def get_all_pricelists(self):
-        pricelists = dict()
+        self.pricelists = dict()
         for index, product in SFB.STANDARD_FOOD_BASKET_INFO.iterrows():
             if pd.isna(product['mask_not_process']):
                 # print(product)
                 if pd.notna(product['globus_method']):
                     # url = product['globus_url']
                     # print(url)
-                    pricelists[product['id']] = self.product_handler(product)
+                    self.pricelists[product['id']] = self.product_handler(product)
                 else:
-                    pricelists[product['id']] = self.cannot_handle(product)
+                    self.pricelists[product['id']] = self.cannot_handle(product)
                     # get_html()
-        return pricelists
+
+        return self.pricelists

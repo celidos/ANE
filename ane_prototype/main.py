@@ -22,7 +22,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.listWidget.itemClicked.connect(self.update_shop_listing)
         self.listWidget_2.itemClicked.connect(self.update_price_listing)
 
-        self.tableView.setStyleSheet('QTableView::item { padding: 0px }')
+        # self.tableView.setStyleSheet('::item { padding: 0px }')
 
         qDebug('gay attack!')
 
@@ -35,7 +35,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # --- insert init here ---
 
     def update_shop_listing(self, item):
-        self.manager.load_avaiable_product_prices_to_table(self.listWidget.currentRow(), self.listWidget_2)
+        self.manager.load_available_product_prices_to_table(self.listWidget.currentRow(), self.listWidget_2)
 
     def update_price_listing(self, item):
         self.manager.load_price_for_product_to_table(self.listWidget.currentRow(),

@@ -5,7 +5,8 @@ import standard_food_basket as SFB
 class SiteHandlerInterface:
 
     def __init__(self):
-        self.site_prefix = 'https://example.com'
+        self.site_prefix = r'https://example.com'
+        self.site_id = 0
         pass
 
     def product_handler(self, product):
