@@ -3,7 +3,7 @@ import standard_food_basket as SFB
 import pandas as pd
 from ane_tools import get_html, penc
 from bs4 import BeautifulSoup
-from post_processing import PostProcessor
+
 
 class SiteHandlerGlobus(interface.SiteHandlerInterface):
 
@@ -12,6 +12,8 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
         self.description = r'"Глобус"'
         self.site_id = 1
         self.pricelists = dict()
+        self.site_code = 'globus'
+        self.site_positions_per_page = 64
 
     def extract_products(self, html, page=1):
         soup = BeautifulSoup(html, 'lxml')
@@ -19,7 +21,7 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
 
         amount_div = soup.find('div', {'class': 'catalog-content'})
         total_amount = int(amount_div.find('h1').find('sub').text.split(' ')[0])
-        if page * 64 >= total_amount:
+        if page * self.site_positions_per_page >= total_amount:
             flag_nextpage = False
         else:
             flag_nextpage = True
@@ -44,59 +46,18 @@ class SiteHandlerGlobus(interface.SiteHandlerInterface):
 
         return flag_nextpage, res
 
-    def handle_id_1(self, product):
-        url = 'https://online.globus.ru/search/?section_id=638&q=' + penc(u'говядина') +\
-              '&s=' + penc(u'Найти') + '&count=64'
-        html = get_html(url)
-        self.extract_products(html)
-        # print(html)
-
     def process_single_url(self, url):
         price = []
         pagenum = 1
         nextpage = True
         while nextpage:
             html = get_html(url + '&PAGEN_2=' + str(pagenum))
-        # html = get_html(url)
             nextpage, newblock = self.extract_products(html, page=pagenum)
             price.extend(newblock)
             pagenum += 1
 
         return price
 
-    def byurls(self, product):
-        print('byurl for', product['title'], '...', end='')
-
-        urls = list(filter(None, product['globus_url'].split(' ')))
-
-        # url = 'https://online.globus.ru/search/?q=' + penc(product['keyword']) +\
-        #       '&s=' + penc(u'Найти') + '&count=100'
-
-        price = []
-        for url in urls:
-            price.extend(self.process_single_url(url))
-        print('total', len(price), 'results!')
-        return price
-
-    def byurlcompl(self, product):
-        pass
-
     def product_handler(self, product):
-        res = getattr(SiteHandlerGlobus, product['globus_method'])(self, product)
-        # print('RES HERE: \n\n', res)
+        res = getattr(SiteHandlerGlobus, product[self.site_code + '_method'])(self, product)
         return pd.DataFrame(res)
-
-    def get_all_pricelists(self):
-        self.pricelists = dict()
-        for index, product in SFB.STANDARD_FOOD_BASKET_INFO.iterrows():
-            if pd.isna(product['mask_not_process']):
-                # print(product)
-                if pd.notna(product['globus_method']):
-                    # url = product['globus_url']
-                    # print(url)
-                    self.pricelists[product['id']] = self.product_handler(product)
-                else:
-                    self.pricelists[product['id']] = self.cannot_handle(product)
-                    # get_html()
-
-        return self.pricelists

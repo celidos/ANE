@@ -3,6 +3,7 @@ from PyQt5.QtCore import qDebug
 from post_processing import PostProcessor
 
 from site_handler_globus import SiteHandlerGlobus
+from site_handler_perekrestok import SiteHandlerPerekrestok
 from pandas_model import PandasModel
 import standard_food_basket as SFB
 
@@ -11,7 +12,8 @@ class PriceManager:
 
     def __init__(self):
         self.handlers = []
-        self.handlers.append(SiteHandlerGlobus())
+        # self.handlers.append(SiteHandlerGlobus())
+        self.handlers.append(SiteHandlerPerekrestok())
         self.data = None
         self.indexmap = []
         pass
@@ -35,7 +37,6 @@ class PriceManager:
     def load_available_product_prices_to_table(self, index, listWidget):
         listWidget.clear()
         self.indexmap = []
-        # print('hui konya')
         if self.data != None:
             if self.data[index] != None:
 

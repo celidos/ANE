@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 import standard_food_basket as SFB
-
+from ane_tools import wspex, tofloat
 
 """
 product features:
@@ -12,14 +12,6 @@ site_unit
 site_link
 
 """
-
-
-def wspex(x):
-    return ''.join(x.split())
-
-
-def tofloat(s):
-    return float(wspex(s.replace(',', '.')))
 
 
 class PostProcessor:
@@ -36,12 +28,13 @@ class PostProcessor:
 
         self.weight_patt1 = re.compile(r'\s+(?P<amount>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*(?P<unit>[гГgG]|грамм|Грамм|кг|Кг|КГ'+\
-                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук).?\s*$')  # group 1
+                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук).?\s*(?:упаковка|пак|пакет)?'+\
+                                       r'(?:в ассортименте|ассорт|в ассорт)?$')  # group 1
 
         self.weight_patt2 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
-                                       r'(?P<unit1>[гГgG]|грамм|Грамм|мл|Мл|МЛ)?\s*[xXхХ\*×]\s*'+\
+                                       r'(?P<unit1>[гГgG]|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак)?.?\s*[xXхХ\*×]\s*'+\
                                        r'(?P<second>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
-                                       r'(?P<unit2>[гГgG]|грамм|Грамм|мл|Мл|МЛ)?.?\s*$') # iks and kha
+                                       r'(?P<unit2>[гГgG]|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак)?.?\s*$') # iks and kha
 
         self.weight_patt3 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*[xXхХ\*×]\s*'+\
@@ -55,7 +48,7 @@ class PostProcessor:
         # self.litre_patt1 = re.compile(r'\s+\d{1,4}(?:[,.]\d{,3})?\s*[лЛlL].?\s*$')
 
         self.package_per_units = ['за1уп', 'за1уп.', '1уп', '1уп.']
-        self.kg_per_units    = ['за1кг', 'за1кг.', '1кг', '1кг.']
+        self.kg_per_units    = ['за1кг', 'за1кг.', '1кг', '1кг.', 'кг']
         self.piece_per_units = ['за1шт.', 'за1шт', '1шт.', '1шт']
         self.litre_per_units = ['за1л', 'за1л.', '1л', '1л.']
 
@@ -63,7 +56,7 @@ class PostProcessor:
         self.gram_units = ['г', 'g', 'грамм', 'граммов']
         self.litre_units = ['л', 'l', 'литр', 'литров', 'литра']
         self.ml_units = ['мл', 'ml', 'миллилитров', 'миллилитра']
-        self.piece_units = ['шт', 'штук', 'штуки', 'штука']
+        self.piece_units = ['шт', 'штук', 'штуки', 'штука', 'пак', 'пакетиков', 'пак']
         self.tenpiece_units = ['10 шт', '10 шт.', '10шт', '10шт.']
         pass
 
@@ -95,11 +88,25 @@ class PostProcessor:
                     extracted_first = tofloat(sr.group('first'))
                     extracted_second = tofloat(sr.group('second'))
                     if sr.group('unit1'):
-                        extracted_unit = sr.group('unit1')
-                    elif sr.group('unit2'):
-                        extracted_unit = sr.group('unit2')
+                        extracted_unit1 = sr.group('unit1')
                     else:
-                        print('**WARNING**: unknown unit! (2 x 2) pattern:', sr.group(0))
+                        extracted_unit1 = None
+                    if sr.group('unit2'):
+                        extracted_unit2 = sr.group('unit2')
+                    else:
+                        extracted_unit2 = None
+
+                    if extracted_unit1 is not None:
+                        if extracted_unit1 in self.piece_units:
+                            extracted_unit = extracted_unit2
+                        else:
+                            extracted_unit = extracted_unit1
+                    else:
+                        extracted_unit = extracted_unit2
+
+                    if extracted_unit is None:
+                        return -6666.66
+
                     coeff = self.get_coeff_by_amount_and_unit(extracted_first * extracted_second, extracted_unit)
                     cur_cost = s_cst * coeff
                 else:
@@ -144,5 +151,5 @@ class PostProcessor:
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
-            if handler.site_id in [1]:
+            if handler.site_id in [2]:
                 self.transform_pricelist(dct)
