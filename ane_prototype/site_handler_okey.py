@@ -1,15 +1,14 @@
 import site_handler_interface as interface
 import pandas as pd
-from ane_tools import wspex_space, tofloat
+from ane_tools import wspex_space, tofloat, clever_sleep
 from post_processing import PostProcessor
 from bs4 import BeautifulSoup
 import re
-import requests
 import codecs
-import json
 import demjson
-import yaml
-
+import time
+import datetime
+import requests
 
 
 class SiteHandlerOkey(interface.SiteHandlerInterface):
@@ -21,7 +20,8 @@ class SiteHandlerOkey(interface.SiteHandlerInterface):
         self.pricelists = dict()
         self.site_code = 'okey'
         self.site_positions_per_page = 72
-        self.time_cooldown = 30000 # ms
+        self.time_cooldown = 30 # s
+        self.last_time_access = datetime.datetime.now()
 
     def get_html_custom_cookie(self, url):
         cookie = \
@@ -48,11 +48,12 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
             'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
             'Cache-Control': 'max-age=0'
         }
-        # r = requests.get(url, headers=headers)
+        # r = requests.get(url, headers=headers) # CRITICAL
+
+        self.last_time_access = clever_sleep(self.last_time_access, self.time_cooldown)
 
         f = codecs.open("okey_smetana.html", 'r')
         html = f.read()
-        # print(html)
         # return r.text
 
         return html
@@ -85,6 +86,10 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
             price_dict = dict()
 
+            product_unavailable_div = price_elem.find('div', {'class': 'product-unavailable-text'})
+            if product_unavailable_div is not None:
+                continue # just skip
+
             product_name_div = price_elem.find('div', {'class': 'product_name'})
             if product_name_div is not None:
                 aref = price_elem.find('a')
@@ -96,7 +101,7 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
             product_price_script = price_elem.find('script', {'id': 'productData_'})
             if product_price_script is not None:
-                print(product_price_script)
+                # print(product_price_script)
                 script_text = product_price_script.text
 
                 sr = re.search('var\s+product\s*=\s*(?P<dct>.+\});\s*$\s*', script_text, re.MULTILINE)
@@ -112,7 +117,7 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
             price_dict['unitcost'] = price_dict['site_price'] * pproc.get_coeff_by_amount_and_unit(amount, unit)
 
-            print(price_dict)
+            # print(price_dict)
 
             res.append(price_dict)
 

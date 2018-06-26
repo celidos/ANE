@@ -1,6 +1,9 @@
 import urllib
 import re
 import requests
+import datetime
+import time
+from random import uniform
 
 
 def penc(url):
@@ -15,13 +18,6 @@ def get_html_headers(url):
     return r.text.encode('utf-8')
 
 def get_html(url):
-    # url = url.encode('utf8')
-    # print('URL:', url[54:])
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:45.0) Gecko/20100101 Firefox/45.0'
-    }
-
     response = urllib.request.urlopen(url)
     data = response.read()  # a `bytes` object
     html = data.decode('utf-8')  # a `str`; this step can't be used if data is binary
@@ -29,6 +25,11 @@ def get_html(url):
 
 
 def wspex(x):
+    """
+    White SPace EXclude
+    :param x: string
+    :return: string x without any whitespaces
+    """
     return re.sub(u'\u200a', '', ''.join(x.split()))
 
 def wspex_space(x):
@@ -42,3 +43,16 @@ def save_html_to_file(html, filename):
     f = open(filename, 'w')
     f.write(html)
     f.close()
+
+def clever_sleep(last_access, cooldown):
+    d = datetime.datetime.now() - last_access
+    d_sec = d.days * 86400 + d.seconds + d.microseconds / 1000000.0
+
+    if d_sec > cooldown:
+        pass
+    else:
+        delay = cooldown + uniform(0, 0.35 * cooldown) - d_sec
+        print('sleeping delay for {:.2f} s...'.format(delay))
+        time.sleep(delay)
+
+    return datetime.datetime.now()
