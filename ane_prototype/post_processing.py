@@ -141,7 +141,7 @@ class PostProcessor:
         for index, row in price.iterrows():
             if 'unitcost' in price.columns:
                 if pd.notna(row['unitcost']):
-                    cost_column.append(row['unitcost'])
+                    cost_column.append(round(row['unitcost'], 2))
                     continue
             cur_cost = self.extract_cost_weight(row)
             cost_column.append(cur_cost)
@@ -167,5 +167,5 @@ class PostProcessor:
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
-            if handler.site_id in [3]:
+            if handler.site_id in []:
                 self.transform_pricelist(dct)

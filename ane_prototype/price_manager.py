@@ -16,8 +16,8 @@ class PriceManager:
         self.handlers = []
         # self.handlers.append(SiteHandlerGlobus())
         # self.handlers.append(SiteHandlerPerekrestok())
-        # self.handlers.append(SiteHandlerOkey())
-        self.handlers.append(SiteHandlerAshan())
+        self.handlers.append(SiteHandlerOkey())
+        # self.handlers.append(SiteHandlerAshan())
         self.data = None
         self.indexmap = []
         pass

@@ -31,6 +31,9 @@ def get_html(url):
 def wspex(x):
     return re.sub(u'\u200a', '', ''.join(x.split()))
 
+def wspex_space(x):
+    return re.sub(u'\u200a', '', ' '.join(x.split()))
+
 
 def tofloat(s):
     return float(wspex(s.replace(',', '.')))
