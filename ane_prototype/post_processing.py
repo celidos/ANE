@@ -26,24 +26,24 @@ class PostProcessor:
         self.piece_patt1 = re.compile(r'\s+(\d{1,4})\s*(?:шт|Шт|ШТ|штук).?\s*$') # group 1
         # self.weight_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:[гГgG]|грамм|Грамм).?\s*$') # group 1
 
-        self.weight_patt1 = re.compile(r'\s+(?P<amount>\d{1,4}(?:[,.]\d{,3})?)'+\
-                                       r'\s*(?P<unit>[гГgG]|грамм|Грамм|кг|Кг|КГ'+\
-                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук).?\s*(?:упаковка|пак|пакет)?'+\
+        self.weight_patt1 = re.compile(r'\s+(?P<amount>\d{1,4}(?:[,.]\d{,4})?)'+\
+                                       r'\s*(?P<unit>[гГgG]|гр|грамм|Грамм|кг|Кг|КГ'+\
+                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук)\.?\s*(?:упаковка|пак|пакет)?'+\
                                        r'(?:в ассортименте|ассорт|в ассорт)?$')  # group 1
 
-        self.weight_patt2 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
-                                       r'(?P<unit1>[гГgG]|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков)?.?\s*(?:[xXхХ\*×]|по)\s*'+\
+        self.weight_patt2 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
+                                       r'(?P<unit1>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков)?\.?\s*(?:[xXхХ*×]|по)\s*'+\
                                        r'(?P<second>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
-                                       r'(?P<unit2>[гГgG]|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак)?.?\s*$') # iks and kha
+                                       r'(?P<unit2>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак)?.?\s*$') # iks and kha
 
         self.weight_patt3 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*[xXхХ\*×]\s*'+\
                                        r'(?P<second>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*[xXхХ\*×]\s*' +\
                                        r'(?P<third>\d{1,4}(?:[,.]\d{,3})?)'+\
-                                       r'(?P<unit>[гГgG]|грамм|Грамм|мл|Мл|МЛ).?')
+                                       r'(?P<unit>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ)\.?')
 
-        self.kg_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:(?:кг|Кг|КГ)|(?:kg|Kg|KG)).?\s*$') # group 1
+        self.kg_patt1 = re.compile(r'\s+(\d{1,4}(?:[,\.]\d{,3})?)\s*(?:(?:кг|Кг|КГ)|(?:kg|Kg|KG)).?\s*$') # group 1
         # self.ml_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:(?:мл|Мл|МЛ)|(?:ml|Ml|ML)).?\s*$')
         # self.litre_patt1 = re.compile(r'\s+\d{1,4}(?:[,.]\d{,3})?\s*[лЛlL].?\s*$')
 
@@ -53,7 +53,7 @@ class PostProcessor:
         self.litre_per_units = ['за1л', 'за1л.', '1л', '1л.']
 
         self.kg_units = ['кг', 'kg', 'килограмм']
-        self.gram_units = ['г', 'g', 'грамм', 'граммов']
+        self.gram_units = ['г', 'g', 'грамм', 'граммов', 'гр']
         self.litre_units = ['л', 'l', 'литр', 'литров', 'литра']
         self.ml_units = ['мл', 'ml', 'миллилитров', 'миллилитра']
         self.piece_units = ['шт', 'штук', 'штуки', 'штука', 'пак', 'пакетиков', 'пак']
@@ -72,42 +72,50 @@ class PostProcessor:
         s_unt = wspex(row['site_unit'])
         s_cst = row['site_cost']
 
-        cur_cost = -6666.66
+        print('\n\nparsing for ', s_title)
+
+        cur_cost = None
         if s_unt in (self.litre_per_units + self.kg_per_units):
             cur_cost = s_cst
         else:
-            sr = self.weight_patt1.search(s_title)
+
+            sr = self.weight_patt2.search(s_title)
             if sr is not None:
-                extracted_amount = tofloat(sr.group('amount'))
-                extracted_unit   = sr.group('unit')
-                coeff = self.get_coeff_by_amount_and_unit(extracted_amount, extracted_unit)
-                cur_cost = s_cst * coeff
-            else:
-                sr = self.weight_patt2.search(s_title)
-                if sr is not None:
-                    extracted_first = tofloat(sr.group('first'))
-                    extracted_second = tofloat(sr.group('second'))
-                    if sr.group('unit1'):
-                        extracted_unit1 = sr.group('unit1')
-                    else:
-                        extracted_unit1 = None
-                    if sr.group('unit2'):
-                        extracted_unit2 = sr.group('unit2')
-                    else:
-                        extracted_unit2 = None
+                extracted_first = tofloat(sr.group('first'))
+                extracted_second = tofloat(sr.group('second'))
+                if sr.group('unit1'):
+                    extracted_unit1 = sr.group('unit1')
+                else:
+                    extracted_unit1 = None
+                if sr.group('unit2'):
+                    extracted_unit2 = sr.group('unit2')
+                else:
+                    extracted_unit2 = None
 
-                    if extracted_unit1 is not None:
-                        if extracted_unit1 in self.piece_units:
-                            extracted_unit = extracted_unit2
-                        else:
-                            extracted_unit = extracted_unit1
-                    else:
+                if extracted_unit1 is not None:
+                    if extracted_unit1 in self.piece_units:
                         extracted_unit = extracted_unit2
+                    else:
+                        extracted_unit = extracted_unit1
+                else:
+                    extracted_unit = extracted_unit2
 
-                    if extracted_unit is None:
-                        return -6666.66
+                if extracted_unit is None:
+                    return None
 
-                    coeff = self.get_coeff_by_amount_and_unit(extracted_first * extracted_second, extracted_unit)
+                coeff = self.get_coeff_by_amount_and_unit(extracted_first * extracted_second, extracted_unit)
+
+                print(' (first =', extracted_first, ' second =', extracted_second,
+                      ' unit =', extracted_unit, ' coeff = ', coeff)
+
+                cur_cost = s_cst * coeff
+
+            else:
+                sr = self.weight_patt1.search(s_title)
+                if sr is not None:
+                    extracted_amount = tofloat(sr.group('amount'))
+                    extracted_unit = sr.group('unit')
+                    coeff = self.get_coeff_by_amount_and_unit(extracted_amount, extracted_unit)
                     cur_cost = s_cst * coeff
                 else:
                     sr = self.weight_patt3.search(s_title)
@@ -122,17 +130,25 @@ class PostProcessor:
                     else:
                         print('**WARNING**: unknown pattern:', s_title)
 
-                        cur_cost = -111.11
-        cur_cost = round(cur_cost, 2)
+                        cur_cost = None
+        if cur_cost is not None:
+            cur_cost = round(cur_cost, 2)
         return cur_cost
+
 
     def extract_price_cost_weight(self, price):
         cost_column = []
         for index, row in price.iterrows():
+            if 'unitcost' in price.columns:
+                if pd.notna(row['unitcost']):
+                    cost_column.append(row['unitcost'])
+                    continue
             cur_cost = self.extract_cost_weight(row)
             cost_column.append(cur_cost)
 
+        # if 'unitcost' not in price.columns:
         price['unitcost'] = cost_column
+
         return price
 
     def extract_cost_per_unit(self, price_dict):
@@ -151,5 +167,5 @@ class PostProcessor:
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
-            if handler.site_id in [2]:
+            if handler.site_id in [3]:
                 self.transform_pricelist(dct)

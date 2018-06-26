@@ -34,3 +34,8 @@ def wspex(x):
 
 def tofloat(s):
     return float(wspex(s.replace(',', '.')))
+
+def save_html_to_file(html, filename):
+    f = open(filename, 'w')
+    f.write(html)
+    f.close()

@@ -1,12 +1,12 @@
 import site_handler_interface as interface
 import standard_food_basket as SFB
 import pandas as pd
-from ane_tools import get_html, get_html_headers, penc, wspex, tofloat
+from ane_tools import get_html, get_html_headers, penc, wspex, tofloat, save_html_to_file
 from bs4 import BeautifulSoup
 import requests
 import re
 import json
-import yaml
+from post_processing import PostProcessor
 
 
 class SiteHandlerAshan(interface.SiteHandlerInterface):
@@ -46,6 +46,46 @@ r"; __srqat=17"
         r = requests.get(url, headers=headers)
         return r.text
 
+    def fill_empty_weights(self, price):
+
+        pproc = PostProcessor()
+
+        for prod in price:
+            cost = pproc.extract_cost_weight(prod)
+            if cost is None:
+
+                print('Не могу распознать вес: ', prod['site_title'])
+                html = self.get_html_custom_cookie(prod['site_link'])
+
+                # save_html_to_file(html, 'page.html')
+
+                # return []
+
+
+                soup = BeautifulSoup(html, 'lxml')
+
+                add_info_div = soup.find('div', {'class': 'prcard__features prcard__features--border'})
+                # print(html)
+                # return []
+                info_rows_divs = add_info_div.find_all('li', {'class': 'prcard__feat-item'})
+                # print(add_info_div)
+                # return []
+                for rw in info_rows_divs:
+                    # print(rw)
+                    txt = rw.text.strip()
+                    find_w = re.compile(r'Вес,\s*(?P<unit>[^\.]+)\s*:\s*(?P<amount>\d{1,4}(?:[,\.]\d{,5})?)')
+                    sr = find_w.match(txt)
+                    if sr is not None:
+                        print('\nПолучили значения: ' + sr.group('amount') + ' ' + sr.group('unit'))
+                        prod['site_title'] += ', ' + sr.group('amount') + ' ' + sr.group('unit')
+                        break
+                    else:
+                        continue
+                prod['unitcost'] = None
+                # return []
+            else:
+                prod['unitcost'] = cost
+
     def extract_products(self, html):
         soup = BeautifulSoup(html, 'lxml')
 
@@ -66,12 +106,14 @@ r"; __srqat=17"
                     price_dict['site_title'] = product['name']
                     price_dict['site_cost'] = product['price']
                     price_dict['site_link'] = product['url']
-                    price_dict['site_unit'] = 'unknown'
+                    price_dict['site_unit'] = '1 уп.'
 
-                    print(price_dict)
+                    # print(price_dict)
 
                     res.append(price_dict)
+
                 return res
+
         return []
 
     def extract_pages(self, html):
@@ -99,6 +141,9 @@ r"; __srqat=17"
             html = self.get_html_custom_cookie(url_paged)
             newblock = self.extract_products(html)
             price.extend(newblock)
+            # break
+
+        self.fill_empty_weights(price)
 
         return price
 

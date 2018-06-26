@@ -24,6 +24,10 @@ class SiteHandlerInterface:
         # to do
         return []
 
+    def skip(self, product):
+        pass
+        return []
+
     def byurls(self, product):
         print('byurl for', product['title'], '...', end='')
 
