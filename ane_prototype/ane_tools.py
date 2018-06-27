@@ -51,7 +51,7 @@ def clever_sleep(last_access, cooldown):
     if d_sec > cooldown:
         pass
     else:
-        delay = cooldown + uniform(0, 0.35 * cooldown) - d_sec
+        delay = cooldown + uniform(0, 0.35) * cooldown - d_sec
         print('sleeping delay for {:.2f} s...'.format(delay))
         time.sleep(delay)
 
