@@ -20,7 +20,7 @@ class SiteHandlerOkey(interface.SiteHandlerInterface):
         self.pricelists = dict()
         self.site_code = 'okey'
         self.site_positions_per_page = 72
-        self.time_cooldown = 30 # s
+        self.time_cooldown = 20 # s
         self.last_time_access = datetime.datetime.now()
 
     def get_html_custom_cookie(self, url):
@@ -48,15 +48,18 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
             'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
             'Cache-Control': 'max-age=0'
         }
-        # r = requests.get(url, headers=headers) # CRITICAL
+
+        print('loading url', url)
+
+        r = requests.get(url, headers=headers) # CRITICAL
 
         self.last_time_access = clever_sleep(self.last_time_access, self.time_cooldown)
 
-        f = codecs.open("okey_smetana.html", 'r')
-        html = f.read()
-        # return r.text
+        # f = codecs.open("okey_smetana.html", 'r')
+        # html = f.read()
+        return r.text
 
-        return html
+        # return html
 
     def extract_products(self, html, page=1):
         pass
@@ -64,9 +67,21 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
         products_div = soup.find('div', {'class': 'product_listing_container'})
 
-        # total_amount = int(soup.find('span', {'class': 'js-list-total__total-count'}).text)
-        # print('Total amount', total_amount)
+        pages_controller_div = soup.find('div', {'class': 'pages pageControlMenu'})
+        if pages_controller_div is None:
+            flag_nextpage = False
+        else:
+            pages_refs = pages_controller_div.find_all('a', {'class': 'hoverover'})
 
+            max_page_index = 1
+            for ref in pages_refs:
+                page_index = int(ref.text.strip())
+                if page_index > max_page_index:
+                    max_page_index = page_index
+            if max_page_index > page:
+                flag_nextpage = True
+            else:
+                flag_nextpage = False
 
         # if page * self.site_positions_per_page >= total_amount:
         #     flag_nextpage = False
@@ -110,7 +125,12 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
                     dct = demjson.decode(dct_str) # yaml and json fails here
                     price_dict['site_price'] = dct['price']
 
-            price_dict['site_unit'] = wspex_space(price_elem.find('div', {'class': 'product_weight'}).text)
+            weight_div = price_elem.find('div', {'class': 'product_weight'})
+            if weight_div is None:
+                print('[okey] For product', price_dict['site_title'], ' weight not found!')
+                continue
+
+            price_dict['site_unit'] = wspex_space(weight_div.text)
 
             sunt = price_dict['site_unit'].split()
             amount, unit = tofloat(sunt[0]), sunt[1]
@@ -121,7 +141,7 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
             res.append(price_dict)
 
-        return True, res
+        return flag_nextpage, res
 
     def process_single_url(self, url):
         # pass
@@ -134,8 +154,8 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
             price.extend(newblock)
             pagenum += 1
 
-            # NEED TO REMOVE!
-            return price
+            # # NEED TO REMOVE!
+            # return price
 
         return price
 
