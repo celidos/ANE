@@ -56,3 +56,10 @@ def clever_sleep(last_access, cooldown):
         time.sleep(delay)
 
     return datetime.datetime.now()
+
+def find_float_number(str):
+    sr = re.findall(r"[-+]?\d*[.,]\d+|\d+", str)
+    if sr:
+        return sr[0]
+    else:
+        return None

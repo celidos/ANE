@@ -2,10 +2,11 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import qDebug
 from post_processing import PostProcessor
 
-from site_handler_globus import SiteHandlerGlobus
+from site_handler_globus      import SiteHandlerGlobus
 from site_handler_perekrestok import SiteHandlerPerekrestok
-from site_handler_okey import SiteHandlerOkey
-from site_handler_ashan import SiteHandlerAshan
+from site_handler_okey        import SiteHandlerOkey
+from site_handler_ashan       import SiteHandlerAshan
+from site_handler_utkonos     import SiteHandlerUtkonos
 from pandas_model import PandasModel
 import standard_food_basket as SFB
 
@@ -16,8 +17,9 @@ class PriceManager:
         self.handlers = []
         # self.handlers.append(SiteHandlerGlobus())
         # self.handlers.append(SiteHandlerPerekrestok())
-        self.handlers.append(SiteHandlerOkey())
+        # self.handlers.append(SiteHandlerOkey())
         # self.handlers.append(SiteHandlerAshan())
+        self.handlers.append(SiteHandlerUtkonos())
         self.data = None
         self.indexmap = []
         pass
