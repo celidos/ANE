@@ -20,7 +20,7 @@ class SiteHandlerOkey(interface.SiteHandlerInterface):
         self.pricelists = dict()
         self.site_code = 'okey'
         self.site_positions_per_page = 72
-        self.time_cooldown = 20 # s
+        self.time_cooldown = 12 # s
         self.last_time_access = datetime.datetime.now()
 
     def get_html_custom_cookie(self, url):
@@ -66,6 +66,9 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
         soup = BeautifulSoup(html, 'lxml')
 
         products_div = soup.find('div', {'class': 'product_listing_container'})
+
+        if products_div is None:
+            return False, []
 
         pages_controller_div = soup.find('div', {'class': 'pages pageControlMenu'})
         if pages_controller_div is None:
@@ -132,10 +135,14 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
 
             price_dict['site_unit'] = wspex_space(weight_div.text)
 
-            sunt = price_dict['site_unit'].split()
-            amount, unit = tofloat(sunt[0]), sunt[1]
+            if not price_dict['site_unit'].startswith('Цена за'):
 
-            price_dict['unitcost'] = price_dict['site_price'] * pproc.get_coeff_by_amount_and_unit(amount, unit)
+                sunt = price_dict['site_unit'].split()
+                amount, unit = tofloat(sunt[0]), sunt[1]
+
+                price_dict['unitcost'] = price_dict['site_price'] * pproc.get_coeff_by_amount_and_unit(amount, unit)
+            else:
+                price_dict['unitcost'] = None
 
             # print(price_dict)
 
