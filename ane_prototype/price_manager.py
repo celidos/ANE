@@ -15,10 +15,10 @@ class PriceManager:
 
     def __init__(self):
         self.handlers = []
-        # self.handlers.append(SiteHandlerGlobus())
-        # self.handlers.append(SiteHandlerPerekrestok())
+        self.handlers.append(SiteHandlerGlobus())
+        self.handlers.append(SiteHandlerPerekrestok())
         # self.handlers.append(SiteHandlerOkey())
-        # self.handlers.append(SiteHandlerAshan())
+        self.handlers.append(SiteHandlerAshan())
         self.handlers.append(SiteHandlerUtkonos())
         self.data = None
         self.indexmap = []

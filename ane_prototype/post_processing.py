@@ -32,9 +32,9 @@ class PostProcessor:
                                        r'(?:в ассортименте|ассорт|в ассорт)?$')  # group 1
 
         self.weight_patt2 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
-                                       r'(?P<unit1>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков)?\.?\s*(?:[xXхХ*×]|по)\s*'+\
+                                       r'(?P<unit1>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков|п|л)?\.?\s*(?:[xXхХ*×]|по)\s*'+\
                                        r'(?P<second>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
-                                       r'(?P<unit2>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак)?.?\s*$') # iks and kha
+                                       r'(?P<unit2>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков|п|л)?.?\s*$') # iks and kha
 
         self.weight_patt3 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*[xXхХ\*×]\s*'+\
@@ -167,5 +167,5 @@ class PostProcessor:
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
-            if handler.site_id in []:
+            if handler.site_id in [1,2,3,5]:
                 self.transform_pricelist(dct)

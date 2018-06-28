@@ -60,6 +60,6 @@ def clever_sleep(last_access, cooldown):
 def find_float_number(str):
     sr = re.findall(r"[-+]?\d*[.,]\d+|\d+", str)
     if sr:
-        return sr[0]
+        return float(sr[0].replace(',','.'))
     else:
         return None
