@@ -26,15 +26,14 @@ class PostProcessor:
         self.piece_patt1 = re.compile(r'\s+(\d{1,4})\s*(?:шт|Шт|ШТ|штук).?\s*$') # group 1
         # self.weight_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:[гГgG]|грамм|Грамм).?\s*$') # group 1
 
-        self.weight_patt1 = re.compile(r'\s+(?P<amount>\d{1,4}(?:[,.]\d{,4})?)'+\
+        self.weight_patt1 = re.compile(r'(?:\s+|\b)(?P<amount>\d{1,4}(?:[,.]\d{,4})?)'+\
                                        r'\s*(?P<unit>[гГgG]|гр|грамм|Грамм|кг|Кг|КГ'+\
-                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук)\.?\s*(?:упаковка|пак|пакет)?'+\
-                                       r'(?:в ассортименте|ассорт|в ассорт)?$')  # group 1
+                                       r'|kg|Kg|KG|мл|Мл|МЛ|[лЛlL]|шт|Шт|штук|Штук)\.?(?:\s+|\b)')  # group 1
 
         self.weight_patt2 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
                                        r'(?P<unit1>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков|п|л)?\.?\s*(?:[xXхХ*×]|по)\s*'+\
                                        r'(?P<second>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
-                                       r'(?P<unit2>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков|п|л)?.?\s*$') # iks and kha
+                                       r'(?P<unit2>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ|шт|штуки|пак|пакетиков|п|л)?\.?(?:\s+|\b|$)') # iks and kha
 
         self.weight_patt3 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'\s*[xXхХ\*×]\s*'+\
@@ -47,7 +46,9 @@ class PostProcessor:
                                                       r'(?:-\s*(?P<second>\d{1,4}(?:[,.]\d{,3})?))?'+\
                                                       r'\s*%')
 
-        self.kg_patt1 = re.compile(r'\s+(\d{1,4}(?:[,\.]\d{,3})?)\s*(?:(?:кг|Кг|КГ)|(?:kg|Kg|KG)).?\s*$') # group 1
+        self.fatconent_zero_percentage_patt1 = re.compile(r'(?:обезжиренный|обезжир|без\s*жира)')
+
+        self.kg_patt1 = re.compile(r'\s+(\d{1,4}(?:[,\.]\d{,3})?)\s*(?:(?:кг|Кг|КГ)|(?:kg|Kg|KG))\.?(?:\s+|\b)') # group 1
         # self.ml_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:(?:мл|Мл|МЛ)|(?:ml|Ml|ML)).?\s*$')
         # self.litre_patt1 = re.compile(r'\s+\d{1,4}(?:[,.]\d{,3})?\s*[лЛlL].?\s*$')
 
@@ -61,7 +62,7 @@ class PostProcessor:
         self.litre_units = ['л', 'l', 'литр', 'литров', 'литра']
         self.ml_units = ['мл', 'ml', 'миллилитров', 'миллилитра']
         self.piece_units = ['шт', 'штук', 'штуки', 'штука', 'пак', 'пакетиков', 'пак']
-        self.tenpiece_units = ['10 шт', '10 шт.', '10шт', '10шт.']
+        self.tenpiece_units = ['10 шт', '10 шт.', '10шт', '10шт.', 'десяток', 'дес.']
 
 
         pass
@@ -111,8 +112,8 @@ class PostProcessor:
 
                 coeff = self.get_coeff_by_amount_and_unit(extracted_first * extracted_second, extracted_unit)
 
-                print(' (first =', extracted_first, ' second =', extracted_second,
-                      ' unit =', extracted_unit, ' coeff = ', coeff)
+                # print(' (first =', extracted_first, ' second =', extracted_second,
+                #       ' unit =', extracted_unit, ' coeff = ', coeff)
 
                 cur_cost = s_cst * coeff
 
@@ -179,6 +180,10 @@ class PostProcessor:
                 else:
                     return tofloat(first), tofloat(second)
 
+        sr = self.fatconent_zero_percentage_patt1.search(s_title)
+        if sr:
+            return 0.0,
+
         return None
 
     def filter_price_by_fatcontent(self, price, limits):
@@ -186,7 +191,7 @@ class PostProcessor:
         for index, row in price.iterrows():
             fatcontent = self.extract_fatcontent(row)
 
-            if fatcontent:
+            if fatcontent is not None:
                 if len(fatcontent) == 1:
                     fatcontent = fatcontent[0], fatcontent[0]
                 if (limits[0] <= fatcontent[0] <= limits[1]) or \
@@ -227,14 +232,30 @@ class PostProcessor:
     def filter_price_by_keywords(self, price, kw_pro, kw_cons):
         to_drop = []
         for index, row in price.iterrows():
-            words_only = {''.join(c for c in x if c.isalnum()).lower() for x in row['site_title'].split()}
-
+            # words_only = {''.join(c for c in x if c.isalnum()).lower() for x in row['site_title'].split()}
+            s_title = row['site_title'].lower()
             # print('words_only = ', words_only, 'kw_c = ', kw_cons)
 
-            if words_only & kw_cons or ((not words_only & kw_pro) and kw_pro):
+            flag = True
+            reason = None
+
+            for r in kw_pro:
+                reason = r.pattern
+                if not r.search(s_title):
+                    flag = False
+                    break
+
+            if flag:
+                for r in kw_cons:
+                    if r.search(s_title):
+                        reason = r.pattern
+                        flag = False
+                        break
+
+            if not flag:
                 to_drop.append(index)
-                print('Pro/Cons: excluded "{}" due to {} and {}'.
-                      format(row['site_title'], words_only & kw_cons, words_only & kw_pro))
+                print('Pro/Cons: excluded "{}" due to {}'.
+                      format(row['site_title'], reason))
 
         new_price = price.drop(to_drop)
         return new_price
@@ -244,13 +265,13 @@ class PostProcessor:
             prod = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
                                                                     product_id].iloc[0]
             if pd.notna(prod['keywords_pro']):
-                keywords_pro  = set(prod['keywords_pro'].split())
+                keywords_pro  = [re.compile(x) for x in prod['keywords_pro'].split(';')]
             else:
-                keywords_pro  = set()
+                keywords_pro  = []
             if pd.notna(prod['keywords_cons']):
-                keywords_cons = set(prod['keywords_cons'].split())
+                keywords_cons = [re.compile(x) for x in prod['keywords_cons'].split(';')]
             else:
-                keywords_cons = set()
+                keywords_cons = []
 
             # print('KEYWORDS PRO', keywords_pro, 'KEYWORDS CONS', keywords_cons)
 
@@ -266,5 +287,6 @@ class PostProcessor:
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
+            print(' ------------------------ pp {} ---------------------- '.format(handler.site_code))
             if handler.site_id in [1, 2, 3, 4, 5]:
                 self.transform_pricelist(dct)

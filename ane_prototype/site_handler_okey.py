@@ -126,21 +126,25 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
                 if sr is not None:
                     dct_str = sr.group('dct')
                     dct = demjson.decode(dct_str) # yaml and json fails here
-                    price_dict['site_price'] = dct['price']
+                    price_dict['site_cost'] = dct['price']
 
             weight_div = price_elem.find('div', {'class': 'product_weight'})
-            if weight_div is None:
-                print('[okey] For product', price_dict['site_title'], ' weight not found!')
-                continue
-
-            price_dict['site_unit'] = wspex_space(weight_div.text)
+            if weight_div:
+                price_dict['site_unit'] = wspex_space(weight_div.text)
+            else:
+                quantity_div = price_elem.find('div', {'class': 'quantity_section'})
+                if quantity_div:
+                    price_dict['site_unit'] = '1 уп.'
+                else:
+                    print('[okey] For product', price_dict['site_title'], ' weight not found!')
+                    continue
 
             if not price_dict['site_unit'].startswith('Цена за'):
 
                 sunt = price_dict['site_unit'].split()
                 amount, unit = tofloat(sunt[0]), sunt[1]
 
-                price_dict['unitcost'] = price_dict['site_price'] * pproc.get_coeff_by_amount_and_unit(amount, unit)
+                price_dict['unitcost'] = price_dict['site_cost'] * pproc.get_coeff_by_amount_and_unit(amount, unit)
             else:
                 price_dict['unitcost'] = None
 

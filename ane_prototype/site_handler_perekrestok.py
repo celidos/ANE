@@ -14,7 +14,7 @@ class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
         self.pricelists = dict()
         self.site_code = 'perekrestok'
         self.site_positions_per_page = 24
-        self.additional_load_products = [10]
+        self.additional_load_products = [10, 15, 31]
 
     def extract_products(self, html, page=1):
         soup = BeautifulSoup(html, 'lxml')
@@ -85,9 +85,12 @@ class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
             td = row.find('td', {'class': 'xf-product-table__col'})
 
             if th and td:
-                if wspex_space(th.text).lower().startswith('способ обработки'):
+                th_text = wspex_space(th.text).lower()
+                if th_text.startswith('способ обработки') or th_text.startswith('вид сахара'):
                     # print('found "{}" = {}'.format('способ обработки', wspex_space(td.text)))
                     pos['site_title'] = wspex_space(td.text) + ' ' + pos['site_title']
+                elif th_text =='вес':
+                    pos['site_title'] = pos['site_title'] + ' весом ' + wspex_space(td.text)
 
         return {}
 
