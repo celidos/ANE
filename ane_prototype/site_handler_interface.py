@@ -1,5 +1,3 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import qDebug
 import standard_food_basket as SFB
 import pandas as pd
 
@@ -12,6 +10,9 @@ class SiteHandlerInterface:
         self.pricelists = dict()
         pass
 
+    def construct_full_link(self, url):
+        return self.site_prefix + url
+
     def product_handler(self, product):
         # to do
         pass
@@ -23,6 +24,9 @@ class SiteHandlerInterface:
     def process_single_url(self, url):
         # to do
         return []
+
+    def process_single_url_product_page(self, prod_dict):
+        return dict()
 
     def skip(self, product):
         pass
@@ -37,20 +41,22 @@ class SiteHandlerInterface:
         for url in urls:
             price.extend(self.process_single_url(url))
         print('total', len(price), 'results!')
+
+        self.get_additional_info(price, product)
+
         return price
+
+    def get_additional_info(self, price, product):
+        pass
 
     def get_all_pricelists(self):
         self.pricelists = dict()
         for index, product in SFB.STANDARD_FOOD_BASKET_INFO.iterrows():
             if pd.isna(product['mask_not_process']):
-                # print(product)
                 if pd.notna(product[self.site_code + '_method']):
-                    # url = product['globus_url']
-                    # print(url)
                     self.pricelists[product['id']] = self.product_handler(product)
                 else:
                     self.pricelists[product['id']] = self.cannot_handle(product)
-                    # get_html()
 
         return self.pricelists
 

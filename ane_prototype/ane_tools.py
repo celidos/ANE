@@ -35,6 +35,8 @@ def wspex(x):
 def wspex_space(x):
     return re.sub(u'\u200a', '', ' '.join(x.split()))
 
+def strsim(a, b):
+    return wspex_space(a).lower() == wspex_space(b).lower()
 
 def tofloat(s):
     return float(wspex(s.replace(',', '.')))

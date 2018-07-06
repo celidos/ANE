@@ -43,6 +43,10 @@ class PostProcessor:
                                        r'(?P<third>\d{1,4}(?:[,.]\d{,3})?)'+\
                                        r'(?P<unit>[гГgG]|гр|грамм|Грамм|мл|Мл|МЛ)\.?')
 
+        self.fatcontent_percentage_patt1 = re.compile(r'(?P<first>\d{1,4}(?:[,.]\d{,3})?)\s*'+\
+                                                      r'(?:-\s*(?P<second>\d{1,4}(?:[,.]\d{,3})?))?'+\
+                                                      r'\s*%')
+
         self.kg_patt1 = re.compile(r'\s+(\d{1,4}(?:[,\.]\d{,3})?)\s*(?:(?:кг|Кг|КГ)|(?:kg|Kg|KG)).?\s*$') # group 1
         # self.ml_patt1 = re.compile(r'\s+(\d{1,4}(?:[,.]\d{,3})?)\s*(?:(?:мл|Мл|МЛ)|(?:ml|Ml|ML)).?\s*$')
         # self.litre_patt1 = re.compile(r'\s+\d{1,4}(?:[,.]\d{,3})?\s*[лЛlL].?\s*$')
@@ -58,6 +62,8 @@ class PostProcessor:
         self.ml_units = ['мл', 'ml', 'миллилитров', 'миллилитра']
         self.piece_units = ['шт', 'штук', 'штуки', 'штука', 'пак', 'пакетиков', 'пак']
         self.tenpiece_units = ['10 шт', '10 шт.', '10шт', '10шт.']
+
+
         pass
 
     def get_coeff_by_amount_and_unit(self, amount, unit):
@@ -72,7 +78,7 @@ class PostProcessor:
         s_unt = wspex(row['site_unit'])
         s_cst = row['site_cost']
 
-        print('\n\nparsing for ', s_title)
+        # print('\n\nparsing for ', s_title)
 
         cur_cost = None
         if s_unt in (self.litre_per_units + self.kg_per_units):
@@ -131,10 +137,9 @@ class PostProcessor:
                         print('**WARNING**: unknown pattern:', s_title)
 
                         cur_cost = None
-        if cur_cost is not None:
+        if cur_cost:
             cur_cost = round(cur_cost, 2)
         return cur_cost
-
 
     def extract_price_cost_weight(self, price):
         cost_column = []
@@ -151,6 +156,51 @@ class PostProcessor:
 
         return price
 
+    def extract_fatcontent(self, row):
+        s_title = row['site_title']
+        # s_unt = wspex(row['site_unit'])
+        # s_cst = row['site_cost']
+
+        sr = self.fatcontent_percentage_patt1.search(s_title)
+        if sr:
+            if sr.group('first'):
+                first = sr.group('first')
+            else:
+                first = None
+
+            if sr.group('second'):
+                second = sr.group('second')
+            else:
+                second = None
+
+            if first:
+                if not second:
+                    return tofloat(first),
+                else:
+                    return tofloat(first), tofloat(second)
+
+        return None
+
+    def filter_price_by_fatcontent(self, price, limits):
+        to_drop = []
+        for index, row in price.iterrows():
+            fatcontent = self.extract_fatcontent(row)
+
+            if fatcontent:
+                if len(fatcontent) == 1:
+                    fatcontent = fatcontent[0], fatcontent[0]
+                if (limits[0] <= fatcontent[0] <= limits[1]) or \
+                   (limits[0] <= fatcontent[1] <= limits[1]):
+                    pass
+                else:
+                    to_drop.append(index)
+                    print('FatDrop: dropping "{}" with limits {}'.format(row['site_title'], limits))
+            else:
+                print('**WARNING** cannot handle fatcontent for', row['site_title'])
+
+        new_price = price.drop(price.index[to_drop])
+        return new_price
+
     def extract_cost_per_unit(self, price_dict):
         for product_id in price_dict.keys():
             prod_unit = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
@@ -162,10 +212,59 @@ class PostProcessor:
                 print('**WARNING**: unprocessed unit:', prod_unit)
                 pass
 
+    def check_pricelist_for_fatcontent(self, price_dict):
+        for product_id in price_dict.keys():
+            prod_fatcontent = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+                                                                    product_id].iloc[0]['fatcontent']
+            if pd.notna(prod_fatcontent):
+                # print('lol ftcontent = ', prod_fatcontent)
+                limits = [float(x) for x in prod_fatcontent.split()]
+                if len(limits) == 1:
+                    limits = [limits[0], limits[0]]
+
+                price_dict[product_id] = self.filter_price_by_fatcontent(price_dict[product_id], limits)
+
+    def filter_price_by_keywords(self, price, kw_pro, kw_cons):
+        to_drop = []
+        for index, row in price.iterrows():
+            words_only = {''.join(c for c in x if c.isalnum()).lower() for x in row['site_title'].split()}
+
+            # print('words_only = ', words_only, 'kw_c = ', kw_cons)
+
+            if words_only & kw_cons or ((not words_only & kw_pro) and kw_pro):
+                to_drop.append(index)
+                print('Pro/Cons: excluded "{}" due to {} and {}'.
+                      format(row['site_title'], words_only & kw_cons, words_only & kw_pro))
+
+        new_price = price.drop(to_drop)
+        return new_price
+
+    def check_pricelist_for_keywords(self, price_dict):
+        for product_id in price_dict.keys():
+            prod = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+                                                                    product_id].iloc[0]
+            if pd.notna(prod['keywords_pro']):
+                keywords_pro  = set(prod['keywords_pro'].split())
+            else:
+                keywords_pro  = set()
+            if pd.notna(prod['keywords_cons']):
+                keywords_cons = set(prod['keywords_cons'].split())
+            else:
+                keywords_cons = set()
+
+            # print('KEYWORDS PRO', keywords_pro, 'KEYWORDS CONS', keywords_cons)
+
+            if keywords_pro or keywords_cons:
+                price_dict[product_id] = self.filter_price_by_keywords(price_dict[product_id],
+                                                                       keywords_pro,
+                                                                       keywords_cons)
+
     def transform_pricelist(self, price_dict):
         self.extract_cost_per_unit(price_dict)
+        self.check_pricelist_for_fatcontent(price_dict)
+        self.check_pricelist_for_keywords(price_dict)
 
     def transform(self, pricelists):
         for dct, handler in pricelists:
-            if handler.site_id in [1,2,3,5]:
+            if handler.site_id in [1, 2, 3, 4, 5]:
                 self.transform_pricelist(dct)

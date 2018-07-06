@@ -141,7 +141,7 @@ class SiteHandlerUtkonos(interface.SiteHandlerInterface):
                 price_dict['site_cost'] = find_float_number(product_price_div.text)
                 price_dict['site_unit'] = str(product_price_div.get('data-weight'))[1:]
 
-            print(price_dict)
+            # print(price_dict)
 
             res.append(price_dict)
 
@@ -164,7 +164,7 @@ class SiteHandlerUtkonos(interface.SiteHandlerInterface):
         return price
 
     def product_handler(self, product):
-        print('handler')
+        # print('handler')
         res = getattr(SiteHandlerUtkonos, product[self.site_code + '_method'])(self, product)
         return pd.DataFrame(res)
 

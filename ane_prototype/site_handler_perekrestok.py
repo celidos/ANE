@@ -1,7 +1,6 @@
 import site_handler_interface as interface
-import standard_food_basket as SFB
 import pandas as pd
-from ane_tools import get_html, penc, wspex, tofloat
+from ane_tools import get_html, wspex, wspex_space, tofloat, strsim
 from bs4 import BeautifulSoup
 
 
@@ -15,6 +14,7 @@ class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
         self.pricelists = dict()
         self.site_code = 'perekrestok'
         self.site_positions_per_page = 24
+        self.additional_load_products = [10]
 
     def extract_products(self, html, page=1):
         soup = BeautifulSoup(html, 'lxml')
@@ -70,6 +70,34 @@ class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
             pagenum += 1
         #
         return price
+
+    def process_single_url_product_page(self, pos):
+        print('Product page ({})'.format(self.construct_full_link(pos['site_link'])))
+        html = get_html(self.construct_full_link(pos['site_link']))
+        soup = BeautifulSoup(html, 'lxml')
+
+        general_info_table = soup.find('table', {'class': 'xf-product-info__table xf-product-table'})
+        table_elements_divs = general_info_table.find_all('tr', {'class': 'xf-product-table__row'})
+
+        for row in table_elements_divs:
+
+            th = row.find('th', {'class': 'xf-product-table__col-header'})
+            td = row.find('td', {'class': 'xf-product-table__col'})
+
+            if th and td:
+                if wspex_space(th.text).lower().startswith('способ обработки'):
+                    # print('found "{}" = {}'.format('способ обработки', wspex_space(td.text)))
+                    pos['site_title'] = wspex_space(td.text) + ' ' + pos['site_title']
+
+        return {}
+
+    def get_additional_info(self, price, product):
+        if product['id'] in self.additional_load_products:
+            for pos in price:
+                # full_link = self.construct_full_link(product['site_link'])
+                extracted_values = self.process_single_url_product_page(pos)
+
+                pos.update(extracted_values)
 
     def product_handler(self, product):
         res = getattr(SiteHandlerPerekrestok, product[self.site_code + '_method'])(self, product)
