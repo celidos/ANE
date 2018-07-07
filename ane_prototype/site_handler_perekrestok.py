@@ -4,7 +4,6 @@ from ane_tools import get_html, wspex, wspex_space, tofloat, strsim
 from bs4 import BeautifulSoup
 
 
-
 class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
 
     def __init__(self):
@@ -101,6 +100,11 @@ class SiteHandlerPerekrestok(interface.SiteHandlerInterface):
                 extracted_values = self.process_single_url_product_page(pos)
 
                 pos.update(extracted_values)
+
+        # guaranteed by link in the table, be careful!
+        elif product['id'] == 19:
+            for pos in price:
+                pos['site_title'] = 'Шлифованный ' + pos['site_title']
 
     def product_handler(self, product):
         res = getattr(SiteHandlerPerekrestok, product[self.site_code + '_method'])(self, product)

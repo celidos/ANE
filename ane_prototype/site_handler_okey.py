@@ -14,14 +14,15 @@ import requests
 class SiteHandlerOkey(interface.SiteHandlerInterface):
 
     def __init__(self):
-        self.site_prefix = r'https://www.okeydostavka.ru/'
+        self.site_prefix = r'https://www.okeydostavka.ru'
         self.description = r'"Окей"'
         self.site_id = 4
         self.pricelists = dict()
         self.site_code = 'okey'
         self.site_positions_per_page = 72
-        self.time_cooldown = 12 # s
+        self.time_cooldown = 7 # s
         self.last_time_access = datetime.datetime.now()
+        self.additional_load_products = [19]
 
     def get_html_custom_cookie(self, url):
         cookie = \
@@ -112,7 +113,7 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
             if product_name_div is not None:
                 aref = price_elem.find('a')
 
-                price_dict['site_title'] = aref.text.strip()
+                price_dict['site_title'] = aref.get('title')
                 price_dict['site_link'] = aref.get('href')
             else:
                 price_dict['site_title'], price_dict['site_link'] = '', ''
@@ -169,6 +170,46 @@ r"BC%D0%B5%D1%82%D0%B0%D0%BD%D0%B0; gtmListKey=GTM_LIST_SEARCH; tmr_detect=1%7C1
             # return price
 
         return price
+
+    def process_single_url_product_page(self, pos):
+        print('[okey] Product page ({})'.format(self.construct_full_link(pos['site_link'])))
+        html = self.get_html_custom_cookie(self.construct_full_link(pos['site_link']))
+        soup = BeautifulSoup(html, 'lxml')
+
+        general_info_table = soup.find('div', {'class': 'col4 product-information'})
+        if not general_info_table:
+            return {}
+
+        sub_table_div = general_info_table.find('ul', {'class': 'widget-list'})
+        if not sub_table_div:
+            return {}
+
+        li_elements = sub_table_div.find_all('li')
+        for row in li_elements:
+
+            span_elements = row.find_all('span')
+            if not span_elements:
+                continue
+            elif len(span_elements) != 2:
+                continue
+
+            th = span_elements[0]
+            td = span_elements[1]
+
+            if th and td:
+                th_text = wspex_space(th.text).lower()
+                if th_text.startswith('вид обработки:'):
+                    pos['site_title'] = wspex_space(td.text) + ' ' + pos['site_title']
+
+        return {}
+
+    def get_additional_info(self, price, product):
+        if product['id'] in self.additional_load_products:
+            for pos in price:
+                # full_link = self.construct_full_link(product['site_link'])
+                extracted_values = self.process_single_url_product_page(pos)
+
+                pos.update(extracted_values)
 
     def product_handler(self, product):
         res = getattr(SiteHandlerOkey, product[self.site_code + '_method'])(self, product)

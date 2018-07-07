@@ -33,7 +33,7 @@ def wspex(x):
     return re.sub(u'\u200a', '', ''.join(x.split()))
 
 def wspex_space(x):
-    return re.sub(u'\u200a', '', ' '.join(x.split()))
+    return re.sub(u'\u200a', '', ' '.join(str(x).split()))
 
 def strsim(a, b):
     return wspex_space(a).lower() == wspex_space(b).lower()
