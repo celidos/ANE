@@ -1,0 +1,96 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #c6cad1;
+    font-family: 'Muli', sans-serif;
+}
+
+.col {
+    width: 10%;
+    padding: 0 0 0 5px;
+    float: left;
+    margin: 30px 0 0;
+    min-width: 80px;
+}
+
+
+.menu {
+
+}
+
+.content {
+    margin: 0;
+    width: 80%;
+    float: left;
+}
+
+.canvas {
+    margin-top: 30px;
+    background-color: white;
+    border: 4px outset darkgrey;
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+img {
+    width: 90%;
+    margin-left: 5%;
+    padding-bottom: 10px;
+}
+
+table {
+    border: 2px groove darkgrey;
+    border-spacing: 0px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+tr {
+    border: 1px groove darkgrey;
+    padding: 5px;
+}
+
+th {
+    text-align: left;
+    border: 1px groove darkgrey;
+    border-spacing: 0px;
+    padding: 5px;
+}
+
+td {
+    text-align: left;
+    border: 1px groove darkgrey;
+    padding: 5px;
+    border-spacing: 0px;
+}
+
+.text-container {
+    padding: 10px;
+}
+
+.row {
+    padding-top: 10px;
+    text-align: center;
+}
+
+input {
+    font-family: 'Muli', sans-serif;
+}
+
+select {
+    font-family: 'Muli', sans-serif;
+    width: 90%;
+}
+label {
+    cursor: cell;
+}
+ul {
+    list-style-type: none;
+    -webkit-padding-start: 10px
+}
+
+h2 {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
