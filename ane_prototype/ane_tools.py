@@ -3,6 +3,7 @@ import re
 import requests
 import datetime
 import time
+import os
 from random import uniform
 
 
@@ -65,3 +66,7 @@ def find_float_number(str):
         return float(sr[0].replace(',','.'))
     else:
         return None
+
+def create_folder(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)

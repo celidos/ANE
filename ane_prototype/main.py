@@ -7,7 +7,7 @@ from PyQt5.QtCore import qDebug
 
 import design  # Это наш конвертированный файл дизайна
 import site_handler_globus as GLOBUS
-from price_manager import PriceManager
+from price_manager import Snapshot
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
@@ -29,7 +29,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # globus = GLOBUS.SiteHandlerGlobus()
         # globus.get_all_pricelists()
 
-        self.manager = PriceManager()
+        self.manager = Snapshot()
         self.manager.load_handlers_to_table(self.listWidget)
 
         # --- insert init here ---
@@ -51,7 +51,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # if directory:  # не продолжать выполнение, если пользователь не выбрал директорию
         #     for file_name in os.listdir(directory):  # для каждого файла в директории
         #         self.listWidget.addItem(file_name)   # добавить файл в listWidget
-        self.manager.get_all_prices_from_all_sites()
+        self.manager.get_snapshot(save_to_file=True)
 
 
 def main():

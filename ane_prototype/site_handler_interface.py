@@ -5,7 +5,7 @@ class SiteHandlerInterface:
 
     def __init__(self):
         self.site_prefix = r'https://example.com'
-        self.site_id = 0
+        self.site_id = -1
         self.site_code = ''
         self.pricelists = dict()
         pass

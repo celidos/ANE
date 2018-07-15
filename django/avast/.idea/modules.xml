@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../ane_prototype/.idea/ane_prototype.iml" filepath="$PROJECT_DIR$/../../ane_prototype/.idea/ane_prototype.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/avast.iml" filepath="$PROJECT_DIR$/.idea/avast.iml" />
+    </modules>
+  </component>
+</project>

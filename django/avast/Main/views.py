@@ -26,7 +26,6 @@ def total_hist_by_protocol(data, save_to_file=False):
         plt.savefig('static/total_by_protocol.png')
     return "TEXT"
 
-
 def main(request):
     images = []
     if request.method == 'POST':

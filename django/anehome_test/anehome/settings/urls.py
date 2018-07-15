@@ -16,6 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from anehome.views import main
+
+from anehome.startup_routine import startup_routine
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', main)
 ]
+
+startup_routine()

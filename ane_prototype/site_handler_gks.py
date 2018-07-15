@@ -11,7 +11,7 @@ class SiteHandlerGks(interface.SiteHandlerInterface):
     def __init__(self):
         self.site_prefix = r'http://www.gks.ru/dbscripts/cbsd/DBInet.cgi'
         self.description = r'Федеральная служба государственной статистики'
-        self.site_id = 6
+        self.site_id = 0
         self.pricelists = dict()
         self.site_code = 'gks'
 
