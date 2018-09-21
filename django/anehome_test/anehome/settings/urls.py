@@ -15,14 +15,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls import url
 
-from anehome.views import main
+from . import settings
+from .. import views
+from django.contrib.staticfiles.urls import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-from anehome.startup_routine import startup_routine
+from anehome_test.anehome.views import *
+
+from anehome_test.anehome.startup_routine import startup_routine
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', main)
+    path('', main),
+    path('exp/', experiment),
+    path('snaps/', list_snaps),
+    path('cp/', display_cp),
+    url('snaps/snap_(?P<year>[\d]+)_(?P<month>[\d]+)_(?P<day>[\d]+)__' +\
+         '(?P<hour>[\d]+)_(?P<minute>[\d]+)_(?P<second>[\d]+)/', display_snap, {}),
+    url(r'^display-price-table/', display_price_table, name='display-price-table'),
+    url('dynamics/', dynamics, {}),
+
+
 ]
+
+# urlpatterns += staticfiles_urlpatterns()
+# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 startup_routine()

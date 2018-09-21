@@ -1,0 +1,43 @@
+{% load render_table from django_tables2 %}
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <title>expert</title>
+    <script>
+function myFunction() {
+    var x = document.getElementById("evidence_selected2").value;
+    window.alert("sometext!! you are gay = " + x);
+    $('.phone-filter').html('').load(
+        "{% url 'phone-filter' %}?option=" + x
+      );
+}
+</script>
+</head>
+<body>
+
+EXP DATA
+
+<form method="POST" class="post-form">{% csrf_token %}
+<select name="evidence_selected" size="3" id="evidence_selected" onchange="myFunction()">
+    {% for choice in form.fields.product.choices %}
+        <option>{{choice.1}}</option>
+    {% endfor %}
+</select>
+</form>
+
+<div class="phone-filter">
+</div>
+
+<p id="demo">JavaScript can change HTML content.</p>
+
+<button type="button" onclick='document.getElementById("demo").innerHTML = "Hello JavaScript!"'>Click Me!</button>
+
+{% include 'radio_form.html' %}
+
+</body>
+</html>

@@ -1,9 +1,13 @@
-/ane_prototype/__pycache__/*
+**/__pycache__/**
+**/__init__/**
 /ane_prototype/.idea/*
 /**/*.csv#
-/**/*.html
 /**/tea_files/*
 /**/okey_smetana_files/*
 /**/okey_sugar_files/*
 /snapshots/**
 /**/.idea/**
+/**/snapshots/**
+**.~lock.**
+django_copy_**
+archieved_snapshots/**

@@ -1,8 +1,8 @@
-import site_handler_interface as interface
+import anehome_test.anehome.logic.snap.site_handler_interface as interface
 import pandas as pd
 import urllib
 import requests
-from ane_tools import tofloat, wspex_space
+from anehome_test.anehome.logic.ane_tools import tofloat, wspex_space
 from bs4 import BeautifulSoup
 
 
@@ -17,7 +17,6 @@ class SiteHandlerGks(interface.SiteHandlerInterface):
 
     def extract_products(self, html):
         soup = BeautifulSoup(html, 'lxml')
-        print(html)
         products_table = soup.find('table', {'class': 'OutTbl'})
         price_list_divs = products_table.find_all('tr')
 
@@ -37,7 +36,7 @@ class SiteHandlerGks(interface.SiteHandlerInterface):
         return res
 
     def process_table(self, product):
-        url = 'http://www.gks.ru/dbscripts/cbsd/DBInet.cgi?pl=1921003'
+        url = 'http://www.gks.ru/dbscripts/cbsd/DBInet.cgi'
         values = {
             'rdLayoutType': 'Au',
             '_Pokazateli': 'on',
@@ -48,7 +47,7 @@ class SiteHandlerGks(interface.SiteHandlerInterface):
             'a_Pokazateli': '1',
             'a_sengoroda': '2',
             'a_period': '3',
-            'Qry': 'Pokazateli:1921003;sengoroda:45000000;grtov:111,113,116,114,411,501,701,801,1001,1111,1102,1106,1201,1501,1601,1701,1711,1903,2002,2004,2101,2201,2203,2301,2303,2306,2401,2501,2601,2603,2605,2621,2701;god:2018;period:7;',
+            'Qry': 'Pokazateli:1921003;sengoroda:45000000;grtov:111,113,116,114,411,501,701,801,1001,1111,1102,1106,1201,1501,1601,1701,1711,1903,2002,2004,2101,2201,2203,2301,2303,2306,2401,2501,2601,2603,2605,2621,2701;god:2018;period:5;',
             'QryGm': 'Pokazateli_z:1;sengoroda_z:2;period_z:3;god_s:1;grtov_b:1;',
             'QryFootNotes': ';',
             'YearsList': '2013;2014;2015;2016;2017;2018;'

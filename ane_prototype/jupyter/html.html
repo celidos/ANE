@@ -1,0 +1,160 @@
+<HTML>
+<HEAD>
+<META content="text/html; charset=windows-1251" http-equiv=Content-Type>
+<TITLE>Результат запроса</TITLE>
+<style type=text/css>@import url(/db/1CDBSS.css);</style>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-31240410-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+</HEAD><BODY  onLoad="focus();return(true);">
+
+<p><img border="0" src="/db/Banner_new.jpg" width="800" height="113"></p>
+<div STYLE="font-family:Arial; color:darkblue; font-size:12; font-weight:bold; position:absolute; top:60; left:120;">
+ФЕДЕРАЛЬНАЯ СЛУЖБА ГОСУДАРСТВЕННОЙ СТАТИСТИКИ</div>
+<div STYLE="font-family:Arial; color:darkblue; font-size:12; font-weight:bold; position:absolute; top:18; left:470;">
+Центральная База Статистических Данных</div>
+<div align="left">
+<SCRIPT language="JavaScript">
+<!--
+ 
+function TestPeriod()
+{
+  i1 = document.forms.ToolBarForm.YearFrom.selectedIndex;
+  i2 = document.forms.ToolBarForm.YearTo.selectedIndex;
+  i3 = document.forms.ToolBarForm.Format.selectedIndex;
+  if (document.forms.ToolBarForm.YearFrom.options[i1].text>document.forms.ToolBarForm.YearTo.options[i2].text)
+  {
+    alert("Начало периода больше даты окончания. Исправьте даты." );
+  }
+  else
+  {
+    document.forms.DateFilter.YearFrom.value = document.forms.ToolBarForm.YearFrom.options[i1].text;
+    document.forms.DateFilter.YearTo.value = document.forms.ToolBarForm.YearTo.options[i2].text;
+    document.forms.DateFilter.Format.value = document.forms.ToolBarForm.Format.options[i3].text;
+    document.forms.DateFilter.tbl.click();
+  }
+}
+ 
+function TestFormat()
+{
+  if (document.forms.ToolBarForm.Format.selectedIndex > 0)
+  {
+  	document.forms.ToolBarForm.showtbl0.disabled=false;
+  }
+  else
+  {
+    document.forms.ToolBarForm.showtbl0.disabled=true;
+  }
+}
+ 
+function ShowMetodol(KodPok)
+{
+  window.open("http://www.gks.ru/dbscripts/Metodol/cbsd_web/" + KodPok + ".htm","","Scrollbars=1,Resizable=1,Width=500,Height=400");
+}
+ 
+-->
+</SCRIPT>
+<FORM action=/dbscripts/cbsd/DBInet.cgi method="POST" name="ToolBarForm">
+<TABLE><TR>
+<TD><SPAN class="SelectFormat">Выберите формат документа</SPAN></TD>
+<TD><SELECT name="Format" size="1" class="Select" style="font-size:8pt;" onchange="TestFormat()">
+<OPTION>
+<OPTION>Excel
+<OPTION>CSV
+</SELECT></TD>
+<TD><INPUT type="button" name="showtbl0" disabled value="Выполнить" style="font-size:8pt;" onclick="TestPeriod();"></TD>
+<TD>&nbsp;</TD>
+<TD><SPAN class="SelectFormat">Период</SPAN></TD>
+<TD><SELECT name="YearFrom" size="1" class="Select" style="font-size:8pt;">
+<OPTION SELECTED>2013
+<OPTION>2014
+<OPTION>2015
+<OPTION>2016
+<OPTION>2017
+<OPTION>2018
+</SELECT></TD>
+<TD><SPAN class="SelectFormat">по</SPAN></TD>
+<TD><SELECT name="YearTo" size="1" class="Select" style="font-size:8pt;">
+<OPTION SELECTED>2018
+<OPTION>2017
+<OPTION>2016
+<OPTION>2015
+<OPTION>2014
+<OPTION>2013
+</SELECT></TD>
+<TD><INPUT type="button" name="showtbl" value="Выполнить" style="font-size:8pt;" onclick="TestPeriod();"></TD>
+<TD>&nbsp;</TD>
+<TD><INPUT type="button" name="btnShowGraph" value="Показать график " style="font-size:8pt;" onclick="document.forms.FormDiag.sbmtShowGraph.click()"></TD>
+<TD>&nbsp;</TD>
+<TD><INPUT type="button" name="btnShowMap" value="Показать карту" style="font-size:8pt;" onclick="document.forms.FormMap.sbmtShowMap.click()"></TD>
+</TR>
+<TR><td height="10"></td></TR>
+</TABLE>
+</FORM>
+<TABLE  style="display:none"><TR><TD>
+<FORM action=/dbscripts/cbsd/DBInet.cgi method="POST" name="DateFilter">
+<INPUT type="hidden" name="Format" value="">
+<INPUT type="hidden" name="YearTo" value="">
+<INPUT type="hidden" name="YearFrom" value="">
+<INPUT type="hidden" name="DiagSz" value="800x600">
+<INPUT type="hidden" name="Qry" value="Pokazateli:1921003;sengoroda:14401000;grtov:105;god:2018;period:1,2,3,4,5,6,7,8,9,10,11,12;">
+<INPUT type="hidden" name="QryGm" value="Pokazateli_z:1;sengoroda_z:2;grtov_z:3;god_s:1;period_b:1;">
+<INPUT type="hidden" name="QryFootNotes" value=";">
+<INPUT type="hidden" name="YearsList" value="2013;2014;2015;2016;2017;2018;">
+<INPUT type="submit" style="visibility:hidden" name="tbl" value="Показать таблицу" >
+</FORM>
+</TD>
+<TD>
+<FORM action=http://db.gks.ru/dbscripts/Cbsd/DG_Map/BuildGraph.aspx method="POST" name="FormDiag" target="_blank">
+<INPUT type="hidden" name="Format" value="">
+<INPUT type="hidden" name="Qry" value="Pokazateli:1921003;sengoroda:14401000;grtov:105;god:2018;period:1,2,3,4,5,6,7,8,9,10,11,12;">
+<INPUT type="hidden" name="QryGm" value="Pokazateli_z:1;sengoroda_z:2;grtov_z:3;god_s:1;period_b:1;">
+<INPUT type="hidden" name="YearsList" value="2013;2014;2015;2016;2017;2018;">
+<INPUT type="submit" style="display:none" name="sbmtShowGraph" value="Показать график" >
+</FORM>
+</TD>
+<TD>
+<FORM action=http://db2.gks.ru/gisdbdoklad/Map.aspx?DBInetKey=2 method="POST" name="FormMap" target="_blank">
+<INPUT type="hidden" name="Format" value="">
+<INPUT type="hidden" name="Qry" value="Pokazateli:1921003;sengoroda:14401000;grtov:105;god:2018;period:1,2,3,4,5,6,7,8,9,10,11,12;">
+<INPUT type="hidden" name="QryGm" value="Pokazateli_z:1;sengoroda_z:2;grtov_z:3;god_s:1;period_b:1;">
+<INPUT type="hidden" name="YearsList" value="2013;2014;2015;2016;2017;2018;">
+<INPUT type="hidden" name="PokName" value="Средние потребительские цены (тарифы) на товары и услуги по городам, рубль">
+<INPUT type="submit" style="display:none" name="sbmtShowMap" value="Показать карту" >
+</FORM>
+</TD>
+</TR>
+</TABLE>
+</div>
+<div align="left">
+  <font face="verdana" size=6>
+  
+<TABLE class=OutTbl width=380 bordercolor=darkgray cellspacing=0 border=1>
+<CAPTION><div class=ZagTbl>Средние потребительские цены (тарифы) на товары и услуги по городам, рубль,<br>Белгород,<br>Фарш мясной, кг</div></CAPTION>
+<TR><TD class=TblShap width=53% rowspan=1 border=0></TD><TD class=TblShap colspan=0>2018</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>январь</p></TD><TD align=right>254,62</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>февраль</p></TD><TD align=right>246,17</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>март</p></TD><TD align=right>250,04</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>апрель</p></TD><TD align=right>258,62</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>май</p></TD><TD align=right>259,42</TD></TR>
+<TR><TD class=TblBok><p  class=bL0 align=left>июнь</p></TD><TD align=right>256,84</TD></TR>
+</TABLE>
+<br>
+<!--  Файл:DBInet.cgi  Версия:1.1.1.10  -->
+  </font> 
+</div>
+<p align=right style="border-top: 1 solid black"><small><i>Copyright © Федеральная служба государственной статистики</i></small></p>
+</BODY>
+</HTML>

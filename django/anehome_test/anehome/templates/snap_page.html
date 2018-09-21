@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% load render_table from django_tables2 %}
+
+{% block title %}Просмотр снапшота{% endblock %}
+
+{% block real_content %}
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<meta charset="UTF-8">
+
+<script>
+function ProductSiteChanged() {
+var product_name = document.getElementById("selected_product").value;
+var site_name = document.getElementById("selected_site").value;
+$('.price-table').html('').load(
+    window.location.href + "?product_name=" + product_name + "&site_name=" + site_name
+  );
+}
+</script>
+
+{% if error_messages %}
+    {% render_table error_messages %}
+{% else %}
+    <span> Ошибок не обнаружено. </span>
+{% endif %}
+
+Сведения о продуктах
+
+<form method="POST" class="post-form">{% csrf_token %}
+    <select name="selected_site" size="6" id="selected_site" onchange="ProductSiteChanged()">
+        {% for choice in form_site.fields.site.choices %}
+            <option  value={{choice.0}}>{{choice.1}}</option>
+        {% endfor %}
+    </select>
+    <select name="selected_product" size="10" id="selected_product" onchange="ProductSiteChanged()">
+        {% for choice in form_product.fields.product.choices %}
+            <option  value={{choice.0}}>{{choice.1}}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="price-table">
+</div>
+{% endblock %}

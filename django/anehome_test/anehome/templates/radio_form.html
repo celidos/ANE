@@ -1,0 +1,19 @@
+    <h1>New post</h1>
+<form method="POST" class="post-form">{% csrf_token %}
+
+  <p><b>Каким браузером в основном пользуетесь:</b><Br>
+   <input type="radio" name="my_option" value="ie"> Internet Explorer<Br>
+   <input type="radio" name="my_option" value="opera"> Opera<Br>
+   <input type="radio" name="my_option" value="firefox"> Firefox<Br>
+
+
+  <select name="cars" size="3" id="evidence_selected2" onchange="myFunction()">
+  <option value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="fiat">Fiat</option>
+  <option value="audi">Audi</option>
+</select>
+  </p>
+  <p><input type="submit" value="Отправить"></p>
+ </form>
+

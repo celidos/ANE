@@ -1,63 +1,28 @@
-from anehome.settings.settings import BASE_DIR
-import re
-import os
-import datetime
-import pandas as pd
+from anehome_test.anehome.settings.settings import BASE_DIR
+from anehome_test.anehome.logic.shapshot_manager import SnapshotManager
+from anehome_test.anehome.logic.avaiable_site_handlers import init_site_handlers, SITE_CODE_TO_HANDLER
+import sys
+import plotly.plotly as py
+from anehome_test.anehome.global_status import GlobalStatus
 
-ANE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(BASE_DIR)))
-SNAPSHOTS_DIR = os.path.join(ANE_DIR, 'snapshots')
-
-class FreshTablesHolder():
-    def __init__(self):
-        self.fresh_snapshot_name = None
-        self.fresh_snapshot_date = None
-        self.fresh_snapshot_dir = None
-        self.snapshot_folder_list = None
-
-        self.gks_table = None
-
-    def scan_all_snapshots(self):
-
-        print(SNAPSHOTS_DIR)
-
-        self.snapshot_folder_list = next(os.walk(SNAPSHOTS_DIR))[1]
-
-        for snapshot_folder_name in self.snapshot_folder_list:
-            print(snapshot_folder_name)
-            sr = re.search('\Asnap_(?P<year>\d+)_(?P<month>\d+)_(?P<day>\d+)__(?P<hour>\d+)_(?P<minute>\d+)_(?P<second>\d+)$',
-                           snapshot_folder_name)
-            if sr:
-                snapdate = datetime.datetime(year=int(sr.group('year')),
-                                             month=int(sr.group('month')),
-                                             day=int(sr.group('day')),
-                                             hour=int(sr.group('hour')),
-                                             minute=int(sr.group('minute')),
-                                             second=int(sr.group('second')))
-                if (self.fresh_snapshot_date and self.fresh_snapshot_date < snapdate) or\
-                        (self.fresh_snapshot_date is None):
-                    self.fresh_snapshot_date = snapdate
-                    self.fresh_snapshot_name = snapshot_folder_name
-
-        print('fresh name =', self.fresh_snapshot_name)
-
-        if self.fresh_snapshot_name:
-            self.fresh_snapshot_dir = os.path.join(SNAPSHOTS_DIR, self.fresh_snapshot_name)
-
-            self.gks_table = pd.read_csv(os.path.join(self.fresh_snapshot_dir,
-                                                      'gks_acc.csv'))
-
-            print(self.gks_table)
-
-
-
-
-        #     re.match()
-
-        pass
-
-fresh_table_holder = FreshTablesHolder()
+snapshot_manager = 123
 
 def startup_routine():
-    fresh_table_holder.scan_all_snapshots()
+    print('startup_routine runned!')
 
-    pass
+    global snapshot_manager
+
+    GlobalStatus()
+
+    init_site_handlers()
+    snapshot_manager = SnapshotManager()
+    snapshot_manager.scan_all_snapshots()
+    print('snapshot manager:', snapshot_manager)
+
+    GlobalStatus().setstatus('Свободен')
+
+    # snapshot_manager.get_test_snap()
+
+    snapshot_manager.get_new_snap_threaded()
+
+    # snapshot_manager.update_plot_pic()

@@ -13,15 +13,13 @@ from site_handler_ashan       import SiteHandlerAshan
 from site_handler_utkonos     import SiteHandlerUtkonos
 from site_handler_gks         import SiteHandlerGks
 from pandas_model import PandasModel
-import standard_food_basket as SFB
-
+from standard_food_basket import STANDARD_FOOD_BASKET_INFO as SFB
 
 
 class Snapshot:
-
     def __init__(self):
         self.handlers = []
-        self.handlers.append(SiteHandlerGlobus())
+        # self.handlers.append(SiteHandlerGlobus())
         # self.handlers.append(SiteHandlerPerekrestok())
         # self.handlers.append(SiteHandlerOkey())
         # self.handlers.append(SiteHandlerUtkonos())
@@ -40,6 +38,35 @@ class Snapshot:
         #
         # for tbl in data.values():
             # t
+
+    def calculate_basket(self, save_to_file=False, fullpath=''):
+        df = []
+
+        for product_id in SFB['id']:
+            prod = SFB.loc[SFB['id'] == product_id].iloc[0]
+            prod_dict = {'id': product_id, 'title': prod['title']}
+            if product_id != 0:
+                for data, handler in self.data:
+                    if handler.site_id not in [-1]:
+                        if product_id in data:
+                            print('calculating siteunit for product {} in the {}'.format(product_id, handler.site_code))
+                            if 'unitcost' in data[product_id].columns:
+                                siteunit = data[product_id]['unitcost'].min(skipna=True)
+                            else:
+                                siteunit = None
+
+                            if siteunit is not None:
+                                prod_dict[handler.site_code + '_unit'] = siteunit
+                                prod_dict[handler.site_code + '_total'] = round(siteunit * prod['req_amount'], 2)
+                            else:
+                                prod_dict[handler.site_code + '_unit'] = None
+                                prod_dict[handler.site_code + '_total'] = None
+            df.append(prod_dict)
+
+        df = pd.DataFrame(df)
+        if save_to_file:
+            df.to_csv(fullpath, sep='\t')
+        return df
 
     def get_snapshot(self, save_to_file=False):
 
@@ -64,11 +91,19 @@ class Snapshot:
         if save_to_file:
             for data, handler in self.data:
                 if handler.site_id not in [-1]:
-                    all_goods = pd.concat(data.values())
+                    newdata = []
+                    for key in data.keys():
+                        xx = data[key]
+                        xx['product_id'] = pd.Series([key] * len(xx))
+                        newdata.append(xx)
+
+                    all_goods = pd.concat(newdata)
                     all_goods.to_csv(snap_path + handler.site_code + '_acc.csv')
             info_dict['finished'] = 1
             with open(snap_path + 'info.txt', 'w') as file:
                 file.write(json.dumps(info_dict))
+
+            self.calculate_basket(True, snap_path + 'basket.csv')
 
     def load_handlers_to_table(self, listWidget):
         listWidget.clear()
@@ -85,7 +120,7 @@ class Snapshot:
                 # print('_______________', lst)
                 for product_id in lst.keys():
                     listWidget.addItem('[' + str(product_id) + '] ' +\
-                                       SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+                                       SFB.loc[SFB['id'] ==
                                                                     product_id].iloc[0]['title'])
                     self.indexmap.append(product_id)
 

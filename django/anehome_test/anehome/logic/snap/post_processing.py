@@ -1,7 +1,7 @@
 import pandas as pd
 import re
-import standard_food_basket as SFB
-from ane_tools import wspex, tofloat
+from anehome_test.anehome.logic.standard_food_basket import sfb
+from anehome_test.anehome.logic.ane_tools import wspex, tofloat
 
 """
 product features:
@@ -75,7 +75,7 @@ class PostProcessor:
         return 1. / amount
 
     def extract_cost_weight(self, row):
-        s_title = row['site_title']
+        s_title = row['site_title'].lower()
         s_unt = wspex(row['site_unit'])
         s_cst = row['site_cost']
 
@@ -208,7 +208,7 @@ class PostProcessor:
 
     def extract_cost_per_unit(self, price_dict):
         for product_id in price_dict.keys():
-            prod_unit = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+            prod_unit = sfb.sfb_info.loc[sfb.sfb_info['id'] ==
                                                                     product_id].iloc[0]['unit']
             print('processing product_id =', product_id)
             if prod_unit in (self.kg_units + self.gram_units + self.litre_units + self.ml_units + self.tenpiece_units):
@@ -219,7 +219,7 @@ class PostProcessor:
 
     def check_pricelist_for_fatcontent(self, price_dict):
         for product_id in price_dict.keys():
-            prod_fatcontent = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+            prod_fatcontent = sfb.sfb_info.loc[sfb.sfb_info['id'] ==
                                                                     product_id].iloc[0]['fatcontent']
             if pd.notna(prod_fatcontent):
                 # print('lol ftcontent = ', prod_fatcontent)
@@ -264,7 +264,7 @@ class PostProcessor:
 
     def check_pricelist_for_keywords(self, price_dict):
         for product_id in price_dict.keys():
-            prod = SFB.STANDARD_FOOD_BASKET_INFO.loc[SFB.STANDARD_FOOD_BASKET_INFO['id'] ==
+            prod = sfb.sfb_info.loc[sfb.sfb_info['id'] ==
                                                                     product_id].iloc[0]
             if pd.notna(prod['keywords_pro']):
                 keywords_pro  = [re.compile(x) for x in filter(None, prod['keywords_pro'].split(';'))]
@@ -287,8 +287,7 @@ class PostProcessor:
         self.check_pricelist_for_fatcontent(price_dict)
         self.check_pricelist_for_keywords(price_dict)
 
-    def transform(self, pricelists):
-        for dct, handler in pricelists:
-            print(' ------------------------ pp {} ---------------------- '.format(handler.site_code))
-            if handler.site_id in [1, 2, 3, 4, 5]:
-                self.transform_pricelist(dct)
+    def transform(self, pricelist, handler):
+        print(' ------------------------ pp {} ---------------------- '.format(handler.site_code))
+        if handler.site_id in [1, 2, 3, 4, 5]:
+            self.transform_pricelist(pricelist)

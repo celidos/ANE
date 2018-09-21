@@ -1,7 +1,6 @@
-import site_handler_interface as interface
-import standard_food_basket as SFB
+import anehome_test.anehome.logic.snap.site_handler_interface as interface
 import pandas as pd
-from ane_tools import get_html, penc
+from anehome_test.anehome.logic.ane_tools import get_html, penc
 from bs4 import BeautifulSoup
 
 
